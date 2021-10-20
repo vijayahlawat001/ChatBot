@@ -1,0 +1,72 @@
+﻿
+@{
+    ViewBag.Title = "ValidityExpired";
+}
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/Scripts/jquery-3.4.1.js")
+    @Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+    @Scripts.Render("~/Scripts/jquery-3.1.0.js")
+    @Scripts.Render("~/Scripts/bootstrap.js")
+    @Scripts.Render("~/Scripts/bootstrap.min.js")
+    <title>Unauthorized: Access is denied</title>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var seconds = 5;
+            var dvCountDown = document.getElementById("CountDown");
+            var lblCount = document.getElementById("CountDownLabel");
+            dvCountDown.style.display = "block";
+            lblCount.innerHTML = seconds;
+            setInterval(function () {
+                seconds--;
+                lblCount.innerHTML = seconds;
+                if (seconds == 0) {
+                    dvCountDown.style.display = "none";
+                    window.location = "Login";
+                }
+            }, 1000);
+        });
+        function RedirectAfterDelayFn() {
+            var seconds = 5;
+            var dvCountDown = document.getElementById("CountDown");
+            var lblCount = document.getElementById("CountDownLabel");
+            dvCountDown.style.display = "block";
+            lblCount.innerHTML = seconds;
+            setInterval(function () {
+                seconds--;
+                lblCount.innerHTML = seconds;
+                if (seconds == 0) {
+                    dvCountDown.style.display = "none";
+                    window.location = "/Account/Login";
+                }
+            }, 1000);
+        };
+    </script>
+</head>
+<body>
+    <div class="cloudWrapper" style="align-content: center !important; align-items: center !important; margin-left: 40%; margin-right: 40%; margin-top:10%;">
+        <div class="cloud cloud-1" style="align-content: center !important; align-items: center !important">
+            <img src="~/Images/Logo.jpeg" alt="" style="width: 223px">
+        </div>
+    </div>
+    <div class="unauthorized-wrap" style="align-content: center !important; align-items: center !important; margin-left: 40%; margin-right: 40%;">
+        <div class="scene-unauth"></div>
+        <div class="row-flex">
+            <div class="messge-unathorized">
+                <h1>Validity Expired</h1>
+            </div>
+        </div>
+    </div>
+    <div style="align-content: center !important; align-items: center !important; margin-left: 40%; margin-right: 40%;">
+        <div id="CountDown">
+            You will be redirected after 
+            <span id="CountDownLabel"></span> seconds.
+        </div>
+    </div>
+</body>
+</html>

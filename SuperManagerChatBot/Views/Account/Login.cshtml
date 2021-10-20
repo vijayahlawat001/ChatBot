@@ -1,0 +1,183 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+}
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewBag.Title - SuperManager Chat bot</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/Scripts/jquery-3.4.1.js")
+    @Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+    @Scripts.Render("~/Scripts/jquery-3.1.0.js")
+    @Scripts.Render("~/Scripts/bootstrap.js")
+    @Scripts.Render("~/Scripts/bootstrap.min.js")
+    @Styles.Render("~/Content/bootstrapLogin.min.css")
+    <title>Supermanager</title>
+    <style>
+        .login-container {
+            margin-top: 2%;
+            margin-bottom: 2%;
+        }
+
+        .login-logo {
+            position: relative;
+            margin-left: -41.5%;
+            border-radius: 5px;
+        }
+
+            .login-logo img {
+                position: absolute;
+                width: 20%;
+                margin-top: 19%;
+                background: #282726;
+                border-radius: 4.5rem;
+                padding: 5%;
+            }
+
+        .login-form-1 {
+            padding: 9%;
+            background: #282726;
+            box-shadow: 0 5px 8px 0 rgba(0, 0, 0, 0.2), 0 9px 26px 0 rgba(0, 0, 0, 0.19);
+        }
+
+            .login-form-1 h3 {
+                text-align: center;
+                margin-bottom: 12%;
+                color: #fff;
+            }
+
+        .login-form-2 {
+            padding: 9%;
+            background: #f05837;
+            box-shadow: 0 5px 8px 0 rgba(0, 0, 0, 0.2), 0 9px 26px 0 rgba(0, 0, 0, 0.19);
+        }
+
+            .login-form-2 h3 {
+                text-align: center;
+                margin-bottom: 12%;
+                color: #fff;
+            }
+
+        .btnSubmit {
+            font-weight: 600;
+            width: 50%;
+            color: #282726;
+            background-color: #fff;
+            border: none;
+            border-radius: 1.5rem;
+            padding: 2%;
+        }
+
+        .btnForgetPwd {
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .btnForgetPwd:hover {
+                text-decoration: none;
+                color: #fff;
+            }
+    </style>
+    <script type="text/javascript">
+        function AuthenticateUser() {
+            var UserName = $("#UserName").val();
+            var Password = $("#Password").val();
+            $.ajax({
+                type: "POST",
+                url: "/Account/AuthenticateUser",
+                data: JSON.stringify({ UserName: UserName, Password: Password }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: onSuccess,
+                error: OnErrorCall
+            });
+            function onSuccess(response) {
+                window.location = "/Home/Index?EmailID=" + UserName;
+            };
+            function OnErrorCall(err) {
+                alert(err);
+            };
+        }
+
+        function RegisterUser() {
+            var FullName = $("#FullName").val();
+            var Country = $("#Country").val();
+            var Email = $("#Email").val();
+            var Password = $("#UserPassword").val();
+            $.ajax({
+                type: "POST",
+                url: "/Account/RegisterUser",
+                data: JSON.stringify({ FullName: FullName, Country: Country, Email: Email, Password: Password }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: onSuccess,
+                error: OnErrorCall
+            });
+            function onSuccess(response) {
+                $("#UserName").val($("#Email").val());
+                $("#Password").val($("#UserPassword").val());
+                $("#FullName").val('');
+                $("#Country").val('');
+                $("#Email").val('');
+                $("#UserPassword").val('');
+                alert(JSON.parse(response.responseText));
+                AuthenticateUser();
+            };
+            function OnErrorCall(err) {
+                alert(err);
+            };
+        }
+    </script>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="row">
+            <div class="col-md-6 login-form-1">
+                <h3>WELCOME TO SUPERMANAGER</h3>
+                <div class="form-group">
+                    <input type="text" id="UserName" class="form-control" placeholder="Your Email *" value="" />
+                </div><br>
+                <div class="form-group">
+                    <input type="password" id="Password" class="form-control" placeholder="Your Password *" value="" />
+                </div><br>
+                <div class="form-group">
+                    <input type="submit" class="btnSubmit" value="Login" onclick="AuthenticateUser()" />
+                </div><br>
+                <div class="form-group">
+                    <a href="@Url.Action("ForgetPassword","Account")">
+                        <span class="btnForgetPwd">Forget Password</span>
+                    </a>
+                </div>
+                <div class="form-group">
+                    <span class="btnForgetPwd">Supermanager is the best platform to learn</span>
+                </div>
+            </div>
+            <div class="col-md-6 login-form-2">
+                <div class="login-logo">
+                    <img src="~/Images/Logo.jpeg" alt="" />
+                </div>
+                <h3>SIGN UP FOR FREE</h3>
+                <div class="form-group">
+                    <input type="text" id="FullName" class="form-control" placeholder="Full Name*" value="" />
+                </div><br>
+                <div class="form-group">
+                    <input type="text" id="Country" class="form-control" placeholder="Country" value="" />
+                </div><br>
+                <div class="form-group">
+                    <input type="text" id="Email" class="form-control" placeholder="Your Email *" value="" />
+                </div><br>
+                <div class="form-group">
+                    <input type="password" id="UserPassword" class="form-control" placeholder="Your Password *" value="" />
+                </div><br>
+                <div class="form-group">
+                    <input type="submit" class="btnSubmit" onclick="RegisterUser()" value="Sign up " />
+                </div><br>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>

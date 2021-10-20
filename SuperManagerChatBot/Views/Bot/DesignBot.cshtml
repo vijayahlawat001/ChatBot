@@ -1,0 +1,391 @@
+﻿@model List<SuperManagerChatBot.Models.TopicDetail>
+
+@{
+    ViewBag.Title = "AddbotResponse";
+}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@ViewBag.Title - SuperManager Chat bot</title>
+@Styles.Render("~/Content/css")
+@Scripts.Render("~/bundles/modernizr")
+@Scripts.Render("~/Scripts/jquery-3.4.1.js")
+@Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+@Scripts.Render("~/Scripts/jquery-3.1.0.js")
+@Scripts.Render("~/Scripts/bootstrap.js")
+@Scripts.Render("~/Scripts/bootstrap.min.js")
+<style>
+    .collapse {
+        width: 15px;
+        background-repeat: no-repeat;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .expand {
+        width: 15px;
+        background-repeat: no-repeat;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .treeview ul {
+        font: 14px Arial, Sans-serif;
+        margin: 0px;
+        padding: 20px;
+        list-style: none;
+    }
+
+    .treeview > li > a {
+        font-weight: bold;
+    }
+
+    .treeview li {
+    }
+
+        .treeview li a {
+            padding: 4px;
+            font: 12px;
+            display: inline-block;
+            text-decoration: none;
+            width: auto;
+        }
+
+    .close {
+        cursor: pointer;
+        position: absolute;
+        top: 50%;
+        right: 0%;
+        padding: 14px 20px;
+        transform: translate(0%, -50%);
+    }
+
+        .close:hover {
+            background: #bbb;
+        }
+
+    .glyphicon-refresh {
+        cursor: pointer;
+        position: absolute;
+        top: 50%;
+        right: 40px !important;
+        padding: 14px 18px;
+        transform: translate(0%, -50%);
+    }
+
+        .glyphicon-refresh:hover {
+            background: #bbb;
+        }
+
+    html, body {
+        height: 100% !important;
+        margin: 0px !important;
+        overflow-x: hidden !important;
+    }
+
+    .box {
+        display: flex !important;
+        flex-flow: column !important;
+        height: 100% !important;
+        font-size: 16px !important;
+    }
+
+        .box .row {
+            border: 0px dotted grey !important;
+        }
+
+            .box .row.header {
+                flex: 0 1 auto !important;
+                /* The above is shorthand for:
+        flex-grow: 0,
+        flex-shrink: 1,
+        flex-basis: auto
+        */
+            }
+
+            .box .row.content {
+                flex: 1 1 auto !important;
+                overflow: auto !important;
+            }
+
+            .box .row.footer {
+                flex: 0 1 10px !important;
+            }
+
+    input, select, textarea {
+        max-width: 80% !important;
+    }
+    input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-top: 6px;
+        margin-bottom: 16px;
+    }
+
+        /* Style the submit button */
+        input[type=button] {
+            background-color: #04AA6D;
+            color: white;
+        }
+
+    
+    /* The message box is shown when the user clicks on the password field */
+    #message {
+        background: #f1f1f1;
+        color: #000;
+        position: relative;
+        padding: 20px;
+        margin-top: 10px;
+    }
+
+        #message p {
+            padding: 10px 35px;
+            font-size: 18px;
+        }
+
+    /* Add a green text color and a checkmark when the requirements are right */
+    .valid {
+        color: green;
+    }
+
+        .valid:before {
+            position: relative;
+            left: -35px;
+            content: "✔";
+        }
+
+    /* Add a red text color and an "x" when the requirements are wrong */
+    .invalid {
+        color: red;
+    }
+
+        .invalid:before {
+            position: relative;
+            left: -35px;
+            content: "✖";
+        }
+</style>
+<div class="box">
+    <div class="row header">
+        <div class="navbar navbar-inverse navbar-fixed-top" style="background-color: white !important;">
+            <div class="container">
+                <div class="navbar-header">
+                    <a href="#" onclick="Refresh()">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                    <a href="@Url.Action("Signout","Account")" onclick="CloseBot()">
+                        <span class="close">&times;</span>
+                    </a>
+                    @Html.ActionLink("SuperManager", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row content">
+                <div class="treeview">
+                    @if (Model != null && Model.Count() > 0)
+                    {
+                        <ul>
+                            @GetTreeView(Model, Model.FirstOrDefault().ParentTopicID)
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <br />
+            <div class="form-group">
+                <select type="text" id="ResponseType" name="ResponseType" class="form-control" placeholder="Country">
+                    <option>Bot reply</option>
+                    <option>Question</option>
+                </select>
+            </div><br>
+            <div class="form-group">
+                <textarea id="Response" cols="40" rows="5" placeholder="Response" onkeyup="convertResponse()" class="form-control" style="width:80% !important;"></textarea>
+            </div><br>
+            <div class="form-group">
+                <textarea id="Selectionoption" cols="40" rows="5" placeholder="Topic" onkeyup="convertOption()" class="form-control" style="width:80% !important;"></textarea>
+            </div><br>
+            <div class="form-group">
+                <input type="button" class="btnSubmit" onclick="SaveBotResponse()" value="Save" />
+            </div><br>
+        </div>
+    </div>
+</div>
+@helper GetTreeView(List<SuperManagerChatBot.Models.TopicDetail> topicDetails, string ParentID)
+{
+    foreach (var i in topicDetails.Where(a => a.ParentTopicID.Equals(ParentID)))
+    {
+        <li>
+            @{ var SubMenu = topicDetails.Where(a => a.ParentTopicID.Equals(i.TopicID)).Count();}
+            @if (SubMenu > 0)
+            {
+                <span class="collapse collapsible">&nbsp;</span>
+            }
+            else
+            {
+                <span style="width:15px; display:inline-block">&nbsp;</span>
+            }
+            <span>
+                <a href="#@i.TopicID">@i.TopicDetail1</a>
+            </span>
+            @if (SubMenu > 0)
+            {
+                <ul>
+                    @GetTreeView(topicDetails, i.TopicID)
+                </ul>
+            }
+        </li>
+    }
+}
+<script>
+    $(document).ready(function () {
+        $(".treeview li>ul").css("display", "none");
+        $(".collapsible").click(function (e) {
+            e.preventDefault();
+            $(this).toggleClass("collapse expand");
+            $(this).closest('li').children('ul').slideToggle();
+
+        });
+    });
+    function SaveBotResponse() {
+        var rootUrl = '@Url.Content("~")'
+        var TopicID = $(location).attr("href").substring($(location).attr("href").indexOf('#')+1, $(location).attr("href").length);
+        var ResponseType = $("#ResponseType :selected").text();'';
+        $.ajax({
+            type: "POST",
+            url: "/Bot/SaveBotDetail",
+            data: JSON.stringify({ TopicID: TopicID, ResponseType: ResponseType, BotResponse: BotResponse, Option: document.getElementById('Selectionoption').value }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: onSuccess,
+            error: OnErrorCall
+        });
+        function onSuccess(response) {
+
+        };
+        function OnErrorCall(err) {
+            alert(err);
+        };
+
+        alert($('#Response').val());
+    }
+    var BotResponse = '';
+    var Botoption= '';
+    function convertResponse() {
+        var input_str; //store input
+        var text_input; //store input after beging trim()med
+        var output_html = ""; //store output
+        var counter;
+
+        input_str = document.getElementById('Response').value; //get input and store it in input_str
+        text_input = input_str.trim(); //trim() input
+        if (text_input.length > 0) {
+            output_html += "<p>"; //begin by creating paragraph
+            for (counter = 0; counter < text_input.length; counter++) {
+                switch (text_input[counter]) {
+                    case '\n':
+                        if (text_input[counter + 1] === '\n') {
+                            output_html += "</p>\n<p>";
+                            counter++;
+                        }
+                        else output_html += "<br>";
+                        break;
+
+                    case ' ':
+                        if (text_input[counter - 1] != ' ' && text_input[counter - 1] != '\t')
+                            output_html += " ";
+                        break;
+
+                    case '\t':
+                        if (text_input[counter - 1] != '\t')
+                            output_html += " ";
+                        break;
+
+                    case '&':
+                        output_html += "&amp;";
+                        break;
+
+                    case '"':
+                        output_html += "&quot;";
+                        break;
+
+                    case '>':
+                        output_html += "&gt;";
+                        break;
+
+                    case '<':
+                        output_html += "&lt;";
+                        break;
+
+                    default:
+                        output_html += text_input[counter];
+
+                }
+
+            }
+            output_html += "</p>"; //finally close paragraph
+        }
+        BotResponse = output_html; // display output html
+    }
+    function convertOption() {
+        var input_str; //store input
+        var text_input; //store input after beging trim()med
+        var output_html = ""; //store output
+        var counter;
+
+        input_str = document.getElementById('Selectionoption').value; //get input and store it in input_str
+        text_input = input_str.trim(); //trim() input
+        if (text_input.length > 0) {
+            output_html += "<p>"; //begin by creating paragraph
+            for (counter = 0; counter < text_input.length; counter++) {
+                switch (text_input[counter]) {
+                    case '\n':
+                        if (text_input[counter + 1] === '\n') {
+                            output_html += "</p>\n<p>";
+                            counter++;
+                        }
+                        else output_html += "<br>";
+                        break;
+
+                    case ' ':
+                        if (text_input[counter - 1] != ' ' && text_input[counter - 1] != '\t')
+                            output_html += " ";
+                        break;
+
+                    case '\t':
+                        if (text_input[counter - 1] != '\t')
+                            output_html += " ";
+                        break;
+
+                    case '&':
+                        output_html += "&amp;";
+                        break;
+
+                    case '"':
+                        output_html += "&quot;";
+                        break;
+
+                    case '>':
+                        output_html += "&gt;";
+                        break;
+
+                    case '<':
+                        output_html += "&lt;";
+                        break;
+
+                    default:
+                        output_html += text_input[counter];
+
+                }
+
+            }
+            output_html += "</p>"; //finally close paragraph
+        }
+        Botoption = output_html; // display output html
+    }
+</script>

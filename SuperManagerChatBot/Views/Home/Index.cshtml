@@ -1,0 +1,337 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - SuperManager Chat bot</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/Scripts/jquery-3.4.1.js")
+    @Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+    @Scripts.Render("~/Scripts/jquery-3.1.0.js")
+    @Scripts.Render("~/Scripts/bootstrap.js")
+    @Scripts.Render("~/Scripts/bootstrap.min.js")
+    <script type="text/javascript">
+        rootUrl = '@Url.Content("~")'
+        var RightAns = 0;
+        var TotalQuestion = 0;
+        $(document).ready(function () {
+            localStorage.removeItem(rootUrl);
+            AddBotResponse('0');
+        });
+        function AddBotResponse(id){
+            var CurrentTopicID = id;
+            $("#tblUserResponse tr").remove();
+            $.ajax({
+                type: "POST",
+                url: "/Home/GetDetail",
+                data: JSON.stringify({ CurrentID: CurrentTopicID }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: onSuccess,
+                error: OnErrorCall
+            });
+            function onSuccess(response) {
+                if (response.responseText.length > 0) {
+                    var reply = JSON.parse(response.responseText);
+                    if (reply.length > 0) {
+                        if (reply[0]["QuestionStart"] == 'Yes') {
+                            localStorage.setItem(rootUrl, response.responseText);
+                            (document.getElementById('SL_NO')).innerText = 0;
+                            DisplayQuestion(1);
+                        }
+                        else {
+                            $('#tblScannedList tbody').append('<tr class="tabRow"><td >' + reply[0]["BotReplyMessage"] + '</td></tr>');
+                            var html = '<tr class="tabRow" style="text-align:right;"><td>';
+                            for (var i = 0; i < reply.length; i++) {
+                                html = html + '<button class="remove" id=' + reply[i]["TopicID"] + '> ' + reply[i]["TopicDetail"] + '</button>';
+                            }
+                            var html = html + '</td></tr>';
+                            $('#tblUserResponse tbody').append(html);
+                            ScrollToLast();
+                        }
+                    }
+                }
+                else {
+                    $('#tblScannedList tbody').append('<tr class="tabRow"><td >There are no more details</td></tr>');
+                }
+            };
+            function OnErrorCall(err) {
+                alert(err);
+            };
+        }
+        function ScrollToLast() {
+            //var scrollBottom = Math.max($('#tblScannedList').height(), 0);
+            //$('#MainDiv').scrollTop(scrollBottom);
+            var rowpos = $('#tblScannedList tr:last').position();
+
+            $('#MainDiv').scrollTop(1000000);
+        }
+        $(document).on("click", "button.remove", function () {
+            if ($(this).parents("tr").siblings("tr.tabRow").length >= 0) {
+                $('#tblScannedList tbody').append('<tr class="tabRow" style="text-align:right;"><td>' + this.innerText + '</td ></tr > ');
+                if (localStorage.getItem(rootUrl) == null) {
+                    AddBotResponse(this.id)
+                }
+                else {
+                    var SL_NO = (document.getElementById('SL_NO')).innerText;
+                    UpdateResult(this.innerText, SL_NO);
+                    $("#tblUserResponse tr").remove();
+                    DisplayQuestion(parseInt(SL_NO) + 1);
+                }
+            }
+            else {
+                alert("you can't remove this record");
+            }
+        });
+        function UpdateResult(CurrentAns,CurrentQuestionNo) {
+            var reply = JSON.parse(localStorage.getItem(rootUrl));
+            for (var i = 0; i < reply.length; i++) {
+                if (reply[i]["SL_NO"] == CurrentQuestionNo) {
+                    if (CurrentAns == reply[i]["RightAns"]) {
+                        RightAns = RightAns + 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function DisplayQuestion(questionNoDisplay) {
+            TotalQuestion = TotalQuestion + 1;
+            var reply = JSON.parse(localStorage.getItem(rootUrl));
+            var NewQuestion = '';
+            var html = '<tr class="tabRow" style="text-align:right;"><td>';
+            for (var i = 0; i < reply.length; i++) {
+                if (reply[i]["SL_NO"] == questionNoDisplay) {
+                    (document.getElementById('SL_NO')).innerText = reply[i]["SL_NO"];
+                    NewQuestion = reply[i]["QuestionDetail"];
+                    html = html + '<button class="remove" id=' + reply[i]["OptionName"] + '> ' + reply[i]["OptionName"] + '</button>';
+                }
+            }
+            if (NewQuestion != '') {
+                $('#tblScannedList tbody').append('<tr class="tabRow"><td >' + NewQuestion + '</td></tr>');
+            }
+            var html = html + '</td></tr>';
+            if (html.length < 65) {
+                GenerateCertificate();
+                $('#tblScannedList tbody').append('<tr class="tabRow"><td >Thank you for your time. Your score is ' + RightAns + '/' + (TotalQuestion - 1) + '.<br>Your certificate has been sent on your registered email id.</td></tr>');
+                $('#tblScannedList tbody').append('<tr class="tabRow" style="display:none !important"><td ></td></tr>');
+                RightAns = 0;
+                TotalQuestion = 0;
+                localStorage.removeItem(rootUrl);
+                AddBotResponse('');
+            }
+            $('#tblUserResponse tbody').append(html);
+            ScrollToLast();
+        }
+        function GenerateCertificate() {
+            $.ajax({
+                type: "POST",
+                url: "/Home/GenerateCertificate",
+                data: JSON.stringify({ }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: onSuccess,
+                error: OnErrorCall
+            });
+            function onSuccess(response) {
+
+            };
+            function OnErrorCall(err) {
+                alert(err);
+            };
+        }
+        function Refresh() {
+            location.reload();
+        }
+        function CloseBot() {
+            window.location.href = "https://www.google.com/";
+        }
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = window.location.search.substring(1),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+            return false;
+        };
+    </script>
+</head>
+<body>
+    <style type="text/css">
+        .close {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            right: 0%;
+            padding: 14px 20px;
+            transform: translate(0%, -50%);
+        }
+
+            .close:hover {
+                background: #bbb;
+            }
+
+        .glyphicon-refresh {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            right: 40px !important;
+            padding: 14px 18px;
+            transform: translate(0%, -50%);
+        }
+
+            .glyphicon-refresh:hover {
+                background: #bbb;
+            }
+
+        html, body {
+            height: 100% !important;
+            margin: 0px !important;
+            overflow-x:hidden !important;
+        }
+
+        .box {
+            display: flex !important;
+            flex-flow: column !important;
+            height: 100% !important;
+            font-size: 16px !important;
+        }
+
+            .box .row {
+                border: 0px dotted grey !important;
+            }
+
+                .box .row.header {
+                    flex: 0 1 auto !important;
+                    /* The above is shorthand for:
+        flex-grow: 0,
+        flex-shrink: 1,
+        flex-basis: auto
+        */
+                }
+
+                .box .row.content {
+                    flex: 1 1 auto !important;
+                    overflow: auto !important;
+                }
+
+                .box .row.footer {
+                    flex: 0 1 10px !important;
+                }
+
+        button {
+            background-color: white !important;
+            padding: 6px !important;
+            margin: 1px !important;
+            border: 1px solid #5ca1e4;
+            text-align: left;
+            border-collapse: collapse;
+            border-radius: 16px;
+            -moz-border-radius: 16px;
+        }
+
+        table.ScannedList {
+            flex: 1 1 auto !important;
+            border: none !important;
+            width: 100%;
+            text-align: left;
+            border-collapse: separate;
+            border-spacing: 6px 6px;
+            padding-left: 8% !important;
+            padding-right: 8% !important;
+        }
+
+            table.ScannedList td, table.ScannedList th {
+                border: 1px solid #AAAAAA;
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-top: 5px !important;
+                padding-bottom: 5px !important;
+                border-radius: 16px;
+                -moz-border-radius: 16px;
+            }
+
+            table.ScannedList tbody td {
+                font-size: 15px;
+                border-radius: 16px;
+                -moz-border-radius: 16px;
+            }
+
+            table.ScannedList tr:nth-child(even) {
+                background: rgb(28, 27, 100);
+                color: white !important;
+            }
+
+            table.ScannedList tr:nth-child(odd) {
+                background-color: #f3f3f3;
+            }
+
+        table.ScannedListUserReply {
+            flex: 0 1 40px !important;
+            border-top: 1px solid #000000 !important;
+            width: 100%;
+            text-align: left;
+            border-collapse: separate;
+            border-spacing: 20px 10px;
+        }
+
+            table.ScannedListUserReply td, table.ScannedListUserReply th {
+                padding: 5px !important;
+                background-color: white !important;
+                border-radius: 16px;
+                -moz-border-radius: 16px;
+            }
+
+            table.ScannedListUserReply tbody td {
+                font-size: 15px;
+                border-radius: 16px;
+                -moz-border-radius: 16px;
+            }
+    </style>
+    <input type="hidden" id="SL_NO">
+    <div class="box">
+        <div class="row header">
+            <div class="navbar navbar-inverse navbar-fixed-top" style="background-color: white !important;">
+                <div class="container">
+                    <div class="navbar-header">
+                        <a href="#" onclick="Refresh()">
+                            <span class="glyphicon glyphicon-refresh"></span>
+                        </a>
+                        <a href="@Url.Action("Signout","Account")" onclick="CloseBot()">
+                            <span class="close">&times;</span>
+                        </a>
+                        @Html.ActionLink("SuperManager", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row content" id="MainDiv">
+            <p>
+                <table id="tblScannedList" class="ScannedList">
+                    <tbody>
+                    </tbody>
+                </table>
+            </p>
+        </div>
+        <div class="row footer">
+            <table id="tblUserResponse" class="ScannedListUserReply">
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        @Scripts.Render("~/bundles/jquery")
+        @Scripts.Render("~/bundles/bootstrap")
+    </div>
+</body>
+</html>

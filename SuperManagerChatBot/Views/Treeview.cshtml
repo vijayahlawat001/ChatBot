@@ -1,0 +1,26 @@
+﻿@helper GetTreeView(List<SuperManagerChatBot.Models.TopicDetail> topicDetails, string ParentID)
+{
+    foreach (var i in topicDetails.Where(a => a.ParentTopicID.Equals(ParentID)))
+    {
+        <li>
+            @{ var SubMenu = topicDetails.Where(a => a.ParentTopicID.Equals(i.TopicID)).Count()}
+            @if (SubMenu > 0)
+            {
+                <span class="collapse collapsible">&nbsp;</span>
+            }
+            else
+            {
+                <span style="width:15px; display:inline-block">&nbsp;</span>
+            }
+            <span>
+                <a href="@i.TopicID">@i.TopicDetail1</a>
+            </span>
+            @if (SubMenu > 0)
+            {
+                <ul>
+                    @GetTreeView(topicDetails, i.TopicID)
+                </ul>
+            }
+        </li>
+    }
+}
